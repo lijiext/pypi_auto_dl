@@ -35,6 +35,7 @@ jobs:
           source venv/bin/activate
           mkdir -p wheelhouse
           echo "📦 Downloading packages for ARM64..."
+          pip download setuptools setuptools-scm wheel build Cython py-cpuinfo -d wheelhouse 
           pip download -r requirements.txt -d wheelhouse
           echo "✅ Download complete, total files:"
           ls -lh wheelhouse
