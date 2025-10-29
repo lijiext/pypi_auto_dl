@@ -1,0 +1,53 @@
+name: Build ARM64 Python Wheelhouse
+
+on:
+  push:
+    paths:
+      - "packages.txt"
+      - ".github/workflows/build-wheelhouse.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build wheelhouse for ARM64
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [3.10]
+        arch: [arm64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
+
+      - name: Prepare environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -U pip wheel setuptools
+
+      - name: Generate requirements.txt
+        run: |
+          # 如果 packages.txt 存在则使用，否则用空文件防止错误
+          cp packages.txt requirements.txt || touch requirements.txt
+
+      - name: Download wheel packages
+        run: |
+          source venv/bin/activate
+          mkdir -p wheelhouse
+          echo "📦 Downloading packages for ARM64..."
+          pip download -r requirements.txt -d wheelhouse
+          echo "✅ Download complete, total files:"
+          ls -lh wheelhouse
+
+      - name: Upload wheelhouse artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheelhouse-arm64-py${{ matrix.python-version }}
+          path: wheelhouse/
+          retention-days: 30
